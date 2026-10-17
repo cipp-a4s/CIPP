@@ -2,12 +2,12 @@ import React from "react";
 import { Typography } from "@mui/material";
 import { Grid } from "@mui/system";
 import { useForm } from "react-hook-form";
-import { Layout as DashboardLayout } from "/src/layouts/index.js";
-import CippFormPage from "/src/components/CippFormPages/CippFormPage";
-import CippFormComponent from "/src/components/CippComponents/CippFormComponent";
-import { CippFormTenantSelector } from "/src/components/CippComponents/CippFormTenantSelector";
-import { CippFormCondition } from "/src/components/CippComponents/CippFormCondition";
-import countryList from "/src/data/countryList.json";
+import { Layout as DashboardLayout } from "../../../../layouts/index";
+import CippFormPage from "../../../../components/CippFormPages/CippFormPage";
+import CippFormComponent from "../../../../components/CippComponents/CippFormComponent";
+import { CippFormTenantSelector } from "../../../../components/CippComponents/CippFormTenantSelector";
+import { CippFormCondition } from "../../../../components/CippComponents/CippFormCondition";
+import countryList from "../../../../data/countryList.json";
 
 const DeployNamedLocationForm = () => {
   const formControl = useForm({
@@ -21,7 +21,7 @@ const DeployNamedLocationForm = () => {
 
   return (
     <CippFormPage
-      title="Add Conditional Access Named Location"
+      title="Conditional Access Named Location"
       formControl={formControl}
       queryKey="AddNamedLocation"
       backButtonTitle="Named Locations"

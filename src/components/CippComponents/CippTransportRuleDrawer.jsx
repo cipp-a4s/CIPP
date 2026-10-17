@@ -1,20 +1,47 @@
 import React, { useState, useEffect, useMemo, useCallback, cloneElement } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import { Button, Divider, Typography, Alert, Box } from "@mui/material";
 import { Grid } from "@mui/system";
 import { useForm, useWatch } from "react-hook-form";
-import { RocketLaunch, Edit } from "@mui/icons-material";
 import { CippOffCanvas } from "./CippOffCanvas";
 import CippFormComponent from "./CippFormComponent";
 import { CippFormDomainSelector } from "./CippFormDomainSelector";
 import { CippApiResults } from "./CippApiResults";
-import { useSettings } from "/src/hooks/use-settings";
-import { ApiGetCall, ApiPostCall } from "/src/api/ApiCall";
+import { useSettings } from "../../hooks/use-settings";
+import { ApiGetCall, ApiPostCall } from "../../api/ApiCall";
 import { useQueryClient } from "@tanstack/react-query";
+
+// AddEditTransportRule turns these comma-separated fields into lists server-side; a template
+// is deployed as-is, so they are stored as lists.
+const COMMA_SEPARATED = new Set([
+  "SubjectContainsWords", "SubjectMatchesPatterns", "SubjectOrBodyContainsWords", "SubjectOrBodyMatchesPatterns",
+  "FromAddressContainsWords", "FromAddressMatchesPatterns", "AttachmentContainsWords", "AttachmentMatchesPatterns",
+  "AttachmentNameMatchesPatterns", "AttachmentPropertyContainsWords", "AttachmentExtensionMatchesWords",
+  "RecipientAddressContainsWords", "RecipientAddressMatchesPatterns", "AnyOfRecipientAddressContainsWords",
+  "AnyOfRecipientAddressMatchesPatterns", "HeaderContainsWords", "HeaderMatchesPatterns", "SenderIpRanges",
+  "IncidentReportContent",
+]);
+
+// Turns the AddEditTransportRule payload into the New-TransportRule parameter set a template stores.
+const toTemplateParams = ({ tenantFilter, ruleId, Priority, State, Name, Comments, ...rest }) => {
+  const params = { name: Name, comments: Comments ?? "", Enabled: State === "Enabled" };
+  Object.entries(rest).forEach(([key, value]) => {
+    const list =
+      typeof value === "string" && COMMA_SEPARATED.has(key.replace(/^ExceptIf/, ""))
+        ? value.split(",").map((item) => item.trim()).filter(Boolean)
+        : value;
+    if (list === undefined || list === null || list === "" || (Array.isArray(list) && !list.length)) return;
+    params[key] = list;
+  });
+  return params;
+};
 
 export const CippTransportRuleDrawer = ({
   buttonText = "New Transport Rule",
-  isEditMode = false,
+  isEditMode: isEditModeProp = false,
   ruleId = null,
+  templateMode = false,
+  template = null,
   requiredPermissions = [],
   PermissionButton = Button,
   onSuccess = () => {},
@@ -23,6 +50,16 @@ export const CippTransportRuleDrawer = ({
   rowAction = false,
 }) => {
   const currentTenant = useSettings().currentTenant;
+  // Template mode edits a stored New-TransportRule parameter set; it has no tenant behind it.
+  const isEditMode = templateMode ? Boolean(template?.GUID) : isEditModeProp;
+  const templateRule = useMemo(
+    () => template && { ...template, Name: template.Name ?? template.name, Comments: template.Comments ?? template.comments },
+    [template]
+  );
+  const tenantPicker = (api) =>
+    templateMode
+      ? { creatable: true, helperText: "Type a value or a %Variable%; resolved per tenant at deploy." }
+      : { api };
   const [internalDrawerVisible, internalSetDrawerVisible] = useState(false);
   const drawerVisible = controlledDrawerVisible !== undefined ? controlledDrawerVisible : internalDrawerVisible;
   const setDrawerVisible = controlledSetDrawerVisible !== undefined ? controlledSetDrawerVisible : internalSetDrawerVisible;
@@ -31,7 +68,14 @@ export const CippTransportRuleDrawer = ({
   const ruleInfo = ApiGetCall({
     url: `/api/ListTransportRules?tenantFilter=${currentTenant}&id=${ruleId}`,
     queryKey: `ListTransportRules-${ruleId}`,
-    waiting: !!drawerVisible || !!isEditMode || !!ruleId,
+    waiting: !templateMode && (!!drawerVisible || !!isEditMode || !!ruleId),
+  });
+
+  // Fetch all rules for priority suggestion in create mode (shares cache key with list page)
+  const allRulesInfo = ApiGetCall({
+    url: `/api/ListTransportRules?tenantFilter=${currentTenant}`,
+    queryKey: `List Transport Rules For Priority - ${currentTenant}`,
+    waiting: !templateMode && !!drawerVisible,
   });
 
   // Default form values
@@ -70,11 +114,13 @@ export const CippTransportRuleDrawer = ({
   // API call for submit
   const submitRule = ApiPostCall({
     urlFromData: true,
+    ...(templateMode && { relatedQueryKeys: ["ListTransportRulesTemplates", "TemplateListTransport"] }),
   });
 
   // Helper to convert ISO8601 date string to Unix timestamp (seconds)
   const iso8601ToUnixTimestamp = (dateString) => {
     if (!dateString) return "";
+    if (typeof dateString === "number") return dateString;
     const d = new Date(dateString);
     if (isNaN(d.getTime())) return "";
     return Math.floor(d.getTime() / 1000);
@@ -88,11 +134,13 @@ export const CippTransportRuleDrawer = ({
 
   // Memoize processed rule data
   const processedRuleData = useMemo(() => {
-    if (!ruleInfo.isSuccess || !ruleInfo.data || !isEditMode) {
+    if (!templateMode && (!ruleInfo.isSuccess || !ruleInfo.data || !isEditMode)) {
       return null;
     }
 
-    const rule = ruleInfo.data?.Results 
+    const rule = templateMode
+      ? isEditMode && templateRule
+      : ruleInfo.data?.Results 
       ? (Array.isArray(ruleInfo.data.Results) ? ruleInfo.data.Results[0] : ruleInfo.data.Results)
       : (Array.isArray(ruleInfo.data) ? ruleInfo.data[0] : ruleInfo.data);
 
@@ -116,7 +164,13 @@ export const CippTransportRuleDrawer = ({
       FromAddressMatchesPatterns: "Sender address matches patterns...",
       AttachmentContainsWords: "Attachment content contains words...",
       AttachmentMatchesPatterns: "Attachment content matches patterns...",
+      AttachmentNameMatchesPatterns: "Attachment name matches patterns...",
+      AttachmentPropertyContainsWords: "Attachment properties contain words...",
       AttachmentExtensionMatchesWords: "Attachment extension is...",
+      AttachmentHasExecutableContent: "Attachment has executable content",
+      AttachmentIsPasswordProtected: "Attachment is password protected",
+      AttachmentIsUnsupported: "Attachment type is unsupported",
+      AttachmentProcessingLimitExceeded: "Attachment processing limit exceeded",
       AttachmentSizeOver: "Attachment size is greater than...",
       MessageSizeOver: "Message size is greater than...",
       SCLOver: "SCL is greater than or equal to...",
@@ -143,6 +197,7 @@ export const CippTransportRuleDrawer = ({
       DeleteMessage: "Delete the message without notifying anyone",
       Quarantine: "Quarantine the message",
       RedirectMessageTo: "Redirect the message to...",
+      RouteMessageOutboundConnector: "Route the message using the connector named...",
       BlindCopyTo: "Add recipients to the Bcc box...",
       CopyTo: "Add recipients to the Cc box...",
       ModerateMessageByUser: "Forward the message for approval to...",
@@ -206,9 +261,9 @@ export const CippTransportRuleDrawer = ({
     // Build form data
     const formData = {
       Name: rule.Name || "",
-      Priority: rule.Priority || "",
+      Priority: rule.Priority ?? "",
       Comments: rule.Comments || "",
-      Enabled: boolHelper(rule.State),
+      Enabled: rule.State === undefined && rule.Enabled !== undefined ? rule.Enabled !== false : boolHelper(rule.State),
       Mode: rule.Mode ? { value: rule.Mode, label: rule.Mode } : { value: "Enforce", label: "Enforce" },
       SetAuditSeverity: rule.SetAuditSeverity 
         ? { value: rule.SetAuditSeverity, label: rule.SetAuditSeverity }
@@ -289,11 +344,22 @@ export const CippTransportRuleDrawer = ({
     if (rule.ApplyHtmlDisclaimerFallbackAction) {
       formData.ApplyHtmlDisclaimerFallbackAction = { value: rule.ApplyHtmlDisclaimerFallbackAction, label: rule.ApplyHtmlDisclaimerFallbackAction };
     }
+    if (rule.IncidentReportContent) {
+      const incidentReportContentValues = Array.isArray(rule.IncidentReportContent)
+        ? rule.IncidentReportContent
+        : rule.IncidentReportContent
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      formData.IncidentReportContent = incidentReportContentValues.map((item) => ({ value: item, label: item }));
+    }
     
     Object.keys(actionFieldMap).forEach(field => {
       if (rule[field] !== null && rule[field] !== undefined && !formData[field]) {
         if (field === "SetSCL" && rule[field] !== null) {
           formData[field] = { value: rule[field].toString(), label: rule[field].toString() };
+        } else if (field === "RouteMessageOutboundConnector") {
+          formData[field] = { value: rule[field], label: rule[field] };
         } else {
           formData[field] = rule[field];
         }
@@ -353,7 +419,7 @@ export const CippTransportRuleDrawer = ({
     });
 
     return formData;
-  }, [ruleInfo.isSuccess, ruleInfo.data, currentTenant, isEditMode]);
+  }, [ruleInfo.isSuccess, ruleInfo.data, currentTenant, isEditMode, templateMode, templateRule]);
 
   // Reset form with processed data
   const resetForm = useCallback(() => {
@@ -367,6 +433,28 @@ export const CippTransportRuleDrawer = ({
       resetForm();
     }
   }, [resetForm, drawerVisible, isEditMode]);
+
+  useEffect(() => {
+    if (!drawerVisible || isEditMode || !Array.isArray(allRulesInfo.data?.Results)) {
+      return;
+    }
+
+    const priorities = allRulesInfo.data.Results
+      .map((rule) => Number(rule?.Priority))
+      .filter((priority) => Number.isFinite(priority));
+
+    if (!priorities.length) {
+      return;
+    }
+
+    const currentPriority = formControl.getValues("Priority");
+    if (currentPriority === "" || currentPriority === null || currentPriority === undefined) {
+      formControl.setValue("Priority", Math.max(...priorities) + 1, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [drawerVisible, isEditMode, allRulesInfo.data, formControl]);
 
   // Custom data formatter for API submission
   const customDataFormatter = useCallback(
@@ -452,6 +540,26 @@ export const CippTransportRuleDrawer = ({
           if (values.ApplyHtmlDisclaimerFallbackAction) {
             const fallback = values.ApplyHtmlDisclaimerFallbackAction;
             apiData.ApplyHtmlDisclaimerFallbackAction = fallback?.value || fallback;
+          }
+        } else if (actionValue === "GenerateIncidentReport") {
+          if (values.GenerateIncidentReport !== undefined) {
+            const fieldValue = values.GenerateIncidentReport;
+            apiData.GenerateIncidentReport =
+              fieldValue && typeof fieldValue === "object" && fieldValue.value !== undefined
+                ? fieldValue.value
+                : fieldValue;
+          }
+          if (values.IncidentReportContent !== undefined) {
+            const fieldValue = values.IncidentReportContent;
+            const incidentReportValues = Array.isArray(fieldValue)
+              ? fieldValue.map((item) => {
+                if (item && typeof item === "object" && item.value !== undefined) {
+                  return item.value;
+                }
+                return item;
+              })
+              : [fieldValue];
+            apiData.IncidentReportContent = incidentReportValues.filter(Boolean).join(",");
           }
         } else if (values[actionValue] !== undefined) {
           const fieldValue = values[actionValue];
@@ -639,7 +747,13 @@ export const CippTransportRuleDrawer = ({
     { value: "FromAddressMatchesPatterns", label: "Sender address matches patterns..." },
     { value: "AttachmentContainsWords", label: "Attachment content contains words..." },
     { value: "AttachmentMatchesPatterns", label: "Attachment content matches patterns..." },
+    { value: "AttachmentNameMatchesPatterns", label: "Attachment name matches patterns..." },
+    { value: "AttachmentPropertyContainsWords", label: "Attachment properties contain words..." },
     { value: "AttachmentExtensionMatchesWords", label: "Attachment extension is..." },
+    { value: "AttachmentHasExecutableContent", label: "Attachment has executable content" },
+    { value: "AttachmentIsPasswordProtected", label: "Attachment is password protected" },
+    { value: "AttachmentIsUnsupported", label: "Attachment type is unsupported" },
+    { value: "AttachmentProcessingLimitExceeded", label: "Attachment processing limit exceeded" },
     { value: "AttachmentSizeOver", label: "Attachment size is greater than..." },
     { value: "MessageSizeOver", label: "Message size is greater than..." },
     { value: "SCLOver", label: "SCL is greater than or equal to..." },
@@ -667,6 +781,7 @@ export const CippTransportRuleDrawer = ({
     { value: "DeleteMessage", label: "Delete the message without notifying anyone" },
     { value: "Quarantine", label: "Quarantine the message" },
     { value: "RedirectMessageTo", label: "Redirect the message to..." },
+    { value: "RouteMessageOutboundConnector", label: "Route the message using the connector named..." },
     { value: "BlindCopyTo", label: "Add recipients to the Bcc box..." },
     { value: "CopyTo", label: "Add recipients to the Cc box..." },
     { value: "ModerateMessageByUser", label: "Forward the message for approval to..." },
@@ -681,6 +796,18 @@ export const CippTransportRuleDrawer = ({
     { value: "GenerateIncidentReport", label: "Generate incident report and send to..." },
     { value: "GenerateNotification", label: "Notify the sender with a message..." },
     { value: "ApplyOME", label: "Apply Office 365 Message Encryption" },
+  ];
+  const incidentReportContentOptions = [
+    { value: "Sender", label: "Sender" },
+    { value: "Recipients", label: "Recipients" },
+    { value: "Subject", label: "Subject" },
+    { value: "CC", label: "CC" },
+    { value: "BCC", label: "BCC" },
+    { value: "Severity", label: "Severity" },
+    { value: "RuleDetections", label: "RuleDetections" },
+    { value: "FalsePositive", label: "FalsePositive" },
+    { value: "IdMatch", label: "IdMatch" },
+    { value: "AttachOriginalMail", label: "AttachOriginalMail" },
   ];
 
   const renderConditionField = (condition) => {
@@ -702,8 +829,9 @@ export const CippTransportRuleDrawer = ({
               formControl={formControl}
               multiple={true}
               creatable={true}
-              api={{
+              {...tenantPicker({
                 url: "/api/ListGraphRequest",
+                queryKey: `Users-TransportRules-${currentTenant}`,
                 data: {
                   Endpoint: "users",
                   tenantFilter: currentTenant,
@@ -713,7 +841,7 @@ export const CippTransportRuleDrawer = ({
                 labelField: (option) => `${option.displayName} (${option.userPrincipalName})`,
                 valueField: "userPrincipalName",
                 dataKey: "Results",
-              }}
+              })}
             />
           </Grid>
         );
@@ -732,8 +860,9 @@ export const CippTransportRuleDrawer = ({
               formControl={formControl}
               multiple={true}
               creatable={true}
-              api={{
+              {...tenantPicker({
                 url: "/api/ListGraphRequest",
+                queryKey: `Groups-TransportRules-${currentTenant}`,
                 data: {
                   Endpoint: "groups",
                   tenantFilter: currentTenant,
@@ -743,7 +872,7 @@ export const CippTransportRuleDrawer = ({
                 labelField: (option) => `${option.displayName}${option.mail ? ` (${option.mail})` : ''}`,
                 valueField: "mail",
                 dataKey: "Results",
-              }}
+              })}
             />
           </Grid>
         );
@@ -844,16 +973,57 @@ export const CippTransportRuleDrawer = ({
           </Grid>
         );
 
-      case "SenderDomainIs":
-      case "RecipientDomainIs":
+      case "AttachmentHasExecutableContent":
+      case "AttachmentIsPasswordProtected":
+      case "AttachmentIsUnsupported":
+      case "AttachmentProcessingLimitExceeded":
         return (
           <Grid size={12} key={conditionValue}>
-            <CippFormDomainSelector
-              fullWidth
+            <CippFormComponent
+              type="switch"
               label={conditionLabel}
               name={conditionValue}
               formControl={formControl}
             />
+          </Grid>
+        );
+
+      case "AttachmentNameMatchesPatterns":
+      case "AttachmentPropertyContainsWords":
+        return (
+          <Grid size={12} key={conditionValue}>
+            <CippFormComponent
+              type="textField"
+              label={`${conditionLabel} (comma-separated)`}
+              name={conditionValue}
+              formControl={formControl}
+              placeholder="Enter comma-separated values"
+            />
+          </Grid>
+        );
+
+      case "SenderDomainIs":
+      case "RecipientDomainIs":
+        return (
+          <Grid size={12} key={conditionValue}>
+            {templateMode ? (
+              <CippFormComponent
+                type="autoComplete"
+                label={conditionLabel}
+                name={conditionValue}
+                formControl={formControl}
+                multiple={true}
+                options={[]}
+                {...tenantPicker()}
+              />
+            ) : (
+              <CippFormDomainSelector
+                fullWidth
+                label={conditionLabel}
+                name={conditionValue}
+                formControl={formControl}
+              />
+            )}
           </Grid>
         );
 
@@ -878,7 +1048,7 @@ export const CippTransportRuleDrawer = ({
         return (
           <Grid size={12} key={conditionValue}>
             <Grid container spacing={2}>
-              <Grid size={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CippFormComponent
                   type="textField"
                   label="Header name"
@@ -887,7 +1057,7 @@ export const CippTransportRuleDrawer = ({
                   placeholder="e.g., Subject, From"
                 />
               </Grid>
-              <Grid size={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CippFormComponent
                   type="textField"
                   label="Words/Patterns (comma-separated)"
@@ -939,7 +1109,6 @@ export const CippTransportRuleDrawer = ({
       case "BlindCopyTo":
       case "CopyTo":
       case "ModerateMessageByUser":
-      case "GenerateIncidentReport":
         return (
           <Grid size={12} key={actionValue}>
             <CippFormComponent
@@ -948,8 +1117,9 @@ export const CippTransportRuleDrawer = ({
               name={actionValue}
               formControl={formControl}
               multiple={true}
-              api={{
+              {...tenantPicker({
                 url: "/api/ListGraphRequest",
+                queryKey: `Users-TransportRules-${currentTenant}`,
                 data: {
                   Endpoint: "users",
                   tenantFilter: currentTenant,
@@ -959,7 +1129,70 @@ export const CippTransportRuleDrawer = ({
                 labelField: (option) => `${option.displayName} (${option.userPrincipalName})`,
                 valueField: "userPrincipalName",
                 dataKey: "Results",
-              }}
+              })}
+            />
+          </Grid>
+        );
+
+      case "GenerateIncidentReport":
+        return (
+          <Grid size={12} key={actionValue}>
+            <Grid container spacing={2}>
+              <Grid size={12}>
+                <CippFormComponent
+                  type="autoComplete"
+                  label={actionLabel}
+                  name={actionValue}
+                  formControl={formControl}
+                  multiple={false}
+                  {...tenantPicker({
+                    url: "/api/ListGraphRequest",
+                    queryKey: `Users-TransportRules-${currentTenant}`,
+                    data: {
+                      Endpoint: "users",
+                      tenantFilter: currentTenant,
+                      $select: "id,displayName,userPrincipalName",
+                      $top: 999,
+                    },
+                    labelField: (option) => `${option.displayName} (${option.userPrincipalName})`,
+                    valueField: "userPrincipalName",
+                    dataKey: "Results",
+                  })}
+                />
+              </Grid>
+              <Grid size={12}>
+                <CippFormComponent
+                  type="autoComplete"
+                  label="Incident report content"
+                  name="IncidentReportContent"
+                  formControl={formControl}
+                  multiple={true}
+                  options={incidentReportContentOptions}
+                  creatable={false}
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+        );
+
+      case "RouteMessageOutboundConnector":
+        return (
+          <Grid size={12} key={actionValue}>
+            <CippFormComponent
+              type="autoComplete"
+              label={actionLabel}
+              name={actionValue}
+              formControl={formControl}
+              multiple={false}
+              creatable={false}
+              {...tenantPicker({
+                url: "/api/ListExchangeConnectors",
+                queryKey: `exchangeConnectors-${currentTenant}`,
+                labelField: (option) => `${option.Name}`,
+                valueField: "Name",
+                dataFilter: (options) =>
+                  options.filter((option) => option.rawData?.cippconnectortype === "outbound"),
+              })}
             />
           </Grid>
         );
@@ -1015,7 +1248,7 @@ export const CippTransportRuleDrawer = ({
         return (
           <Grid size={12} key={actionValue}>
             <Grid container spacing={2}>
-              <Grid size={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CippFormComponent
                   type="textField"
                   label="Header name"
@@ -1024,7 +1257,7 @@ export const CippTransportRuleDrawer = ({
                   placeholder="X-Custom-Header"
                 />
               </Grid>
-              <Grid size={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CippFormComponent
                   type="textField"
                   label="Header value"
@@ -1065,7 +1298,7 @@ export const CippTransportRuleDrawer = ({
                   placeholder="Enter HTML disclaimer text"
                 />
               </Grid>
-              <Grid size={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CippFormComponent
                   type="autoComplete"
                   label="Disclaimer location"
@@ -1077,7 +1310,7 @@ export const CippTransportRuleDrawer = ({
                   ]}
                 />
               </Grid>
-              <Grid size={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <CippFormComponent
                   type="autoComplete"
                   label="Fallback action"
@@ -1173,6 +1406,23 @@ export const CippTransportRuleDrawer = ({
     const formData = formControl.getValues();
     const apiData = customDataFormatter(formData);
 
+    if (templateMode) {
+      if (!apiData.Name) return;
+      submitRule.mutate(
+        {
+          url: "/api/AddTransportTemplate",
+          data: {
+            ...(template?.GUID && { GUID: template.GUID }),
+            name: apiData.Name,
+            comments: apiData.Comments,
+            PowerShellCommand: JSON.stringify(toTemplateParams(apiData)),
+          },
+        },
+        { onSuccess: handleCloseDrawer }
+      );
+      return;
+    }
+
     submitRule.mutate({
       url: "/api/AddEditTransportRule",
       data: apiData,
@@ -1205,15 +1455,23 @@ export const CippTransportRuleDrawer = ({
     <>
       {rowAction === false && !drawerVisible && (
         <PermissionButton
-          requiredPermissions={requiredPermissions}
+          {...(PermissionButton !== Button ? { requiredPermissions } : {})}
           onClick={() => setDrawerVisible(true)}
-          startIcon={isEditMode ? <Edit /> : <RocketLaunch />}
+          startIcon={isEditMode ? <CippIcons.Edit /> : <CippIcons.RocketLaunch />}
         >
           {buttonText}
         </PermissionButton>
       )}
       <CippOffCanvas
-        title={isEditMode ? `Edit Rule: ${rule?.Name || ""}` : "New Transport Rule"}
+        title={
+          templateMode
+            ? isEditMode
+              ? `Edit Template: ${templateRule?.Name || ""}`
+              : "New Transport Rule Template"
+            : isEditMode
+            ? `Edit Rule: ${rule?.Name || ""}`
+            : "New Transport Rule"
+        }
         visible={drawerVisible}
         onClose={handleCloseDrawer}
         size="xl"
@@ -1226,7 +1484,9 @@ export const CippTransportRuleDrawer = ({
             >
               {submitRule.isLoading
                 ? isEditMode ? "Updating..." : "Creating..."
-                : isEditMode ? "Update Rule" : "Create Rule"}
+                : templateMode
+                  ? isEditMode ? "Update Template" : "Create Template"
+                  : isEditMode ? "Update Rule" : "Create Rule"}
             </Button>
             <Button variant="outlined" onClick={handleCloseDrawer}>
               Cancel
@@ -1255,15 +1515,18 @@ export const CippTransportRuleDrawer = ({
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
-              <CippFormComponent
-                type="number"
-                label="Priority"
-                name="Priority"
-                formControl={formControl}
-                placeholder="0 (lowest priority)"
-              />
-            </Grid>
+            {!templateMode && (
+              <Grid size={{ xs: 12, md: 6 }}>
+                <CippFormComponent
+                  type="number"
+                  label="Priority"
+                  name="Priority"
+                  required
+                  formControl={formControl}
+                  placeholder="0 (lowest priority)"
+                />
+              </Grid>
+            )}
 
             <Grid size={12}>
               <CippFormComponent

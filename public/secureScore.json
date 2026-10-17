@@ -132,6 +132,19 @@
   {
     "service": "Azure ATP",
     "tier": "Core",
+    "userImpact": "high",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_AccountsInOperatorGroups",
+    "title": "Locate accounts in built-in Operator Groups"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
     "userImpact": "Low",
     "vendorInformation": {
       "provider": "SecureScore",
@@ -296,7 +309,7 @@
       "vendor": "Microsoft"
     },
     "id": "AATP_ADCSMisconfiguredRpcEnrollmentSigning",
-    "title": "Enforce encryption for RPC certificate enrollment interface (ESC8)"
+    "title": "Enforce encryption for RPC certificate enrollment interface (ESC11)"
   },
   {
     "service": "Azure ATP",
@@ -451,19 +464,6 @@
       "subProvider": null,
       "vendor": "Microsoft"
     },
-    "id": "AATP_CyberArk_MFAforPriviledgedUserAccounts",
-    "title": "Assign multi-factor authentication for CyberArk Identity privileged user accounts "
-  },
-  {
-    "service": "Azure ATP",
-    "tier": "Core",
-    "userImpact": "Medium",
-    "vendorInformation": {
-      "provider": "SecureScore",
-      "providerVersion": null,
-      "subProvider": null,
-      "vendor": "Microsoft"
-    },
     "id": "AATP_CyberArk_PriviledgedUserAccountsWithOldPasswords",
     "title": "Change password for CyberArk Identity  privileged User accounts "
   },
@@ -542,6 +542,19 @@
       "subProvider": null,
       "vendor": "Microsoft"
     },
+    "id": "AATP_EnsureNoPrivilegedSaasAppAccountsExistOutsideOfIdpControl",
+    "title": "Ensure no privileged SaaS apps accounts exist outside of IDP control"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "high",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
     "id": "AATP_EntraConnectAccountsOldPasswords",
     "title": "Rotate password for Entra Connect AD DS Connector account"
   },
@@ -609,6 +622,19 @@
     },
     "id": "AATP_ExposedPasswordsInADAttributes",
     "title": "Remove discoverable passwords in Active Directory account attributes"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "high",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_ExternalAndGuestUsersWithPrivilegedRoles",
+    "title": "Ensure all External and Guest accounts are not granted privileged roles"
   },
   {
     "service": "Azure ATP",
@@ -713,6 +739,32 @@
     },
     "id": "AATP_NonAdminDCSyncAccounts",
     "title": "Remove non-admin accounts with DCSync permissions "
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "high",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_NonAdminWithPasswordResetOnSensitiveGroups",
+    "title": "Ensure non-admin accounts cannot reset passwords for sensitive groups"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "high",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_NonAdminWriteDaclOnSensitiveGroups",
+    "title": "Ensure non-admin identities cannot Write DACL permissions on sensitive groups"
   },
   {
     "service": "Azure ATP",
@@ -899,6 +951,19 @@
   {
     "service": "Azure ATP",
     "tier": "Core",
+    "userImpact": "High",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_PrivilegedEntraIdAndActiveDirectoryAccounts",
+    "title": "Identify Entra ID privileged accounts that are also privileged in Active Directory"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
     "userImpact": "low",
     "vendorInformation": {
       "provider": "SecureScore",
@@ -912,6 +977,71 @@
   {
     "service": "Azure ATP",
     "tier": "Core",
+    "userImpact": "Medium",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_SailPoint_DormantPriviledgedAccounts",
+    "title": "Remove stale SailPoint privileged accounts "
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "Medium",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_SailPoint_HighNumberOfPriviledgedIdentityAccounts",
+    "title": "High number of SailPoint accounts with a privileged role assigned "
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "Medium",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_SailPoint_HighNumberOfSystemAdmins",
+    "title": "Limit the number of SailPoint accounts with system admin role "
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "Medium",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_SailPoint_MFAforPriviledgedUserAccounts",
+    "title": "Assign multi-factor authentication for SailPoint privileged user accounts "
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "Medium",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_SailPoint_PriviledgedUserAccountsWithOldPasswords",
+    "title": "Change password for SailPoint privileged User accounts "
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
     "userImpact": "low",
     "vendorInformation": {
       "provider": "SecureScore",
@@ -921,6 +1051,32 @@
     },
     "id": "AATP_Sensor",
     "title": "Install Defender for Identity Sensor on all Domain Controllers"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "Medium",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_ServiceAccountsInPrivilegedGroup",
+    "title": " Identify service accounts in privileged groups"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "high",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_ServiceAccountsWithDomainOrGlobalAdminRole",
+    "title": "Ensure service accounts are not assigned Domain Name Admin or Global Admin roles"
   },
   {
     "service": "Azure ATP",
@@ -947,6 +1103,19 @@
     },
     "id": "AATP_SingleManagedServiceAccountsWithOldPassword",
     "title": "Rotate old password for sMSA and set up valid rotation interval in the GPO"
+  },
+  {
+    "service": "Azure ATP",
+    "tier": "Core",
+    "userImpact": "medium",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "AATP_StaleAccounts",
+    "title": "Remove stale Active Directory accounts"
   },
   {
     "service": "Azure ATP",
@@ -3039,7 +3208,7 @@
       "vendor": "Microsoft"
     },
     "id": "mdo_unusualcharacterssafetytips",
-    "title": "Enable the user impersonation unusual characters safety tip "
+    "title": "Enable the user impersonation unusual characters safety tip"
   },
   {
     "service": "MDO",
@@ -3324,8 +3493,255 @@
       "subProvider": null,
       "vendor": "Microsoft"
     },
+    "id": "scid_10000",
+    "title": "Disable insecure administration protocol  Telnet"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_10001",
+    "title": "Require authentication for Telnet management interface"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_10002",
+    "title": "Remove insecure administration protocols SNMP V1 and SNMP V2"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_10003",
+    "title": "Require authentication for VNC management interface"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
     "id": "scid_101",
     "title": "Disable JavaScript on Adobe 2015"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_102",
+    "title": "Enable 'Local Security Authority (LSA) protection' on Windows 11 22h2 and higher"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_103",
+    "title": "Require LDAP client signing to prevent tampering and protect directory authentication"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_104",
+    "title": "Encrypt LDAP client traffic to protect sensitive data in transit"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_105",
+    "title": "Enforce LDAP channel binding to protect authentication sessions from interception"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_106",
+    "title": "Require LDAP server signing to ensure integrity of directory traffic"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_107",
+    "title": "Block outbound network connections from Microsoft HTML Application Host (mshta.exe)"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_108",
+    "title": "Disable Remote Registry Service on Windows"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_109",
+    "title": "Disable NTLM authentication for Windows"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_110",
+    "title": "Block file transfer over RDP"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_111",
+    "title": "SMB server security hardening against authentication relay attacks"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_112",
+    "title": "Ensure devices are updated to Secure Boot 2023 certificates and boot manager"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_113",
+    "title": "Ensure LAPS is enabled on every endpoint and server"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_114",
+    "title": "Reduce unnecessary inbound internet exposure on internet-facing devices"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_115",
+    "title": "Ensure Microsoft Vulnerable Driver Blocklist is enabled"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_118",
+    "title": "scid_118"
   },
   {
     "service": "MDATP",
@@ -3404,6 +3820,19 @@
     },
     "id": "scid_2000",
     "title": "Turn on Microsoft Defender for Endpoint sensor"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_20000",
+    "title": "Onboard devices to Microsoft Defender for Endpoint"
   },
   {
     "service": "MDATP",
@@ -3727,6 +4156,19 @@
       "subProvider": null,
       "vendor": "Microsoft"
     },
+    "id": "scid_2100",
+    "title": "Enable UEFI Secure Boot mode"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
     "id": "scid_22",
     "title": "Disable 'Password Manager'"
   },
@@ -3976,6 +4418,45 @@
     },
     "id": "scid_2515",
     "title": "Block abuse of exploited vulnerable signed drivers"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_2516",
+    "title": "Block Webshell creation for Servers"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_2517",
+    "title": "Block use of copied or impersonated system tools"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_2518",
+    "title": "Block rebooting machine in Safe Mode"
   },
   {
     "service": "MDATP",
@@ -4248,7 +4729,7 @@
       "vendor": "Microsoft"
     },
     "id": "scid_4001",
-    "title": "Remove share write permission set to ‘Everyone’"
+    "title": "Remove share write permission set to Everyone"
   },
   {
     "service": "MDATP",
@@ -4572,6 +5053,32 @@
       "subProvider": null,
       "vendor": "Microsoft"
     },
+    "id": "scid_5092",
+    "title": "Turn on Tamper Protection for MacOS"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_5093",
+    "title": "Enable Microsoft Defender Antivirus real-time behavior monitoring in macOS"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
     "id": "scid_5094",
     "title": "Enable Microsoft Defender Antivirus cloud-delivered protection in macOS"
   },
@@ -4780,6 +5287,32 @@
       "subProvider": null,
       "vendor": "Microsoft"
     },
+    "id": "scid_6092",
+    "title": "Turn on Microsoft Defender Antivirus Tamper Protection for Linux"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_6093",
+    "title": "Enable Microsoft Defender Antivirus real-time behavior monitoring for Linux"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
     "id": "scid_6094",
     "title": "Enable Microsoft Defender Antivirus cloud-delivered protection for Linux"
   },
@@ -4808,6 +5341,32 @@
     },
     "id": "scid_61",
     "title": "Set 'Minimum PIN length for startup' to '6 or more characters'"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_6100",
+    "title": "Enable 'Microsoft Defender for Endpoint Plug-in for WSL'"
+  },
+  {
+    "service": "MDATP",
+    "tier": "Core",
+    "userImpact": "Unknown",
+    "vendorInformation": {
+      "provider": "SecureScore",
+      "providerVersion": null,
+      "subProvider": null,
+      "vendor": "Microsoft"
+    },
+    "id": "scid_6101",
+    "title": "Turn off custom kernel/commandline in Windows Subsystem for Linux"
   },
   {
     "service": "MDATP",

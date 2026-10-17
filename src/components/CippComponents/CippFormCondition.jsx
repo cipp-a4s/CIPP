@@ -14,11 +14,12 @@ export const CippFormCondition = (props) => {
     formControl,
     disabled = false,
     clearOnHide = true, // New prop to control whether to clear values when hidden
+    clearFields, // Explicit field names to clear, for children that bind fields internally without a name prop
   } = props;
 
   if (
     field === undefined ||
-    compareValue === undefined ||
+    (compareValue === undefined && compareType !== "hasValue") ||
     children === undefined ||
     formControl === undefined
   ) {
@@ -72,8 +73,9 @@ export const CippFormCondition = (props) => {
     React.Children.forEach(children, (child) => {
       if (!React.isValidElement(child)) return;
 
-      // Check if the child is a CippFormComponent with a name prop
-      if (child.props?.name && child.type?.name === "CippFormComponent") {
+      // A field is any child bound to the form. Not matched by component name: production
+      // minification empties it, and wrappers like CippFormGroupSelector never matched anyway.
+      if (child.props?.name && child.props?.formControl) {
         fieldNames.push(child.props.name);
       }
 
@@ -148,10 +150,17 @@ export const CippFormCondition = (props) => {
           watcher.length >= compareValue
         );
       case "hasValue":
-        return (
-          (watcher !== undefined && watcher !== null && watcher !== "") ||
-          (watcher?.value !== undefined && watcher?.value !== null && watcher?.value !== "")
-        );
+        // Check watchedValue (the extracted value based on propertyName)
+        // For simple values (strings, numbers)
+        if (watchedValue === undefined || watchedValue === null || watchedValue === "") {
+          return false;
+        }
+        // If it's an array, check if it has elements
+        if (Array.isArray(watchedValue)) {
+          return watchedValue.length > 0;
+        }
+        // For any other truthy value (objects, numbers, strings), consider it as having a value
+        return true;
       case "labelEq":
         return Array.isArray(watcher) && watcher.some((item) => item?.label === compareValue);
       case "labelContains":
@@ -167,7 +176,9 @@ export const CippFormCondition = (props) => {
         } else if (typeof watcher === "object" && watcher !== null) {
           return watcher?.value === compareValue;
         }
-        return false;
+        // Legacy templates can hold the raw value (e.g. a boolean saved by a former
+        // switch field) instead of an {label, value} option wrapper.
+        return watcher === compareValue;
       case "valueNotEq":
         if (Array.isArray(watcher)) {
           return watcher.some((item) => item?.value !== compareValue);
@@ -208,7 +219,7 @@ export const CippFormCondition = (props) => {
   // Reset field values when condition is not met and action is "hide"
   useEffect(() => {
     if (action === "hide" && !isConditionMet() && clearOnHide) {
-      const fieldNames = extractFieldNames(children);
+      const fieldNames = clearFields ?? extractFieldNames(children);
 
       // Reset each field
       fieldNames.forEach((fieldName) => {
